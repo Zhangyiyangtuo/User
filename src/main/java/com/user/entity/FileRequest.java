@@ -5,7 +5,7 @@ public class FileRequest {
     private int sortord;
     private int order;
     public String getPath() {
-        return "~/Desktop";
+        return "/";
     }
     public int getSortord() {
         return sortord;
