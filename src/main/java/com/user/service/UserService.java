@@ -4,11 +4,12 @@ import com.user.entity.User;
 
 public interface UserService {
 
-    User loginService(String email,String username, String password);
+    User loginService(String email, String username, String password);
 
-    long registService(String username, String password,String email);
+    long registService(String username, String password, String email);
 
     boolean modifyPassword(String email, String newPassword);
 
 
+    User findByUid(long l);
 }

@@ -7,10 +7,7 @@ import com.user.utils.Result;
 import com.user.utils.JwtTokenUtil; // 导入 JwtTokenUtil 类
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
@@ -32,7 +29,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Result<User> loginController(@RequestParam String email, @RequestParam String username, @RequestParam String password) {
+    public Result loginController(@RequestParam String email, @RequestParam String username, @RequestParam String password) {
         User user = userService.loginService(email, username, password);
         if (user != null) {
             // 登录成功，生成 JWT
@@ -44,7 +41,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public Result<User> registController(@RequestParam String username, @RequestParam String password, @RequestParam String email) {
+    public Result registController(@RequestParam String username, @RequestParam String password, @RequestParam String email) {
         long result = userService.registService(username, password, email);
         if (result == -1) {
             return Result.error("1", "请输入完整信息！");
@@ -66,7 +63,7 @@ public class UserController {
     }
 
     @PostMapping("/verify-code")
-    public Result<String> verifyCode(@RequestParam String token, @RequestParam String code) {
+    public Result verifyCode(@RequestParam String token, @RequestParam String code) {
         String email = jwtTokenUtil.parseEmailToken(token);
         boolean codeVerified = emailService.verifyCode(email, code);
         if (codeVerified) {
@@ -88,5 +85,16 @@ public class UserController {
             return Result.error("1","未找到对应用户！");
         }
 
+    }
+
+
+    @GetMapping({"/browse"})
+    public Result checkInfoController(@RequestParam String userid, @RequestParam (required = false) String username, @RequestParam (required=false) String password) {
+        User user = userService.findByUid(Long.parseLong(userid));
+        if (user != null) {
+            return Result.success(user, "success");
+        } else {
+            return Result.error("1", "用户不存在");
+        }
     }
 }

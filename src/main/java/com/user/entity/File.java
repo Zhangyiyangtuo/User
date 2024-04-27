@@ -1,47 +1,55 @@
 package com.user.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.Setter;
 
-import java.io.Serializable;
-import java.util.Date;
-
-@Table(name = "file")
-@Data
-@Entity
-public class File implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long fileid;
-
-    @Column(nullable = false,  length = 20)
+public class File {
+    @Setter
     private String filename;
+    private String updateTime;
+    private String updater;
+    @Setter
+    private String size;
+    private int share;
 
-    @Column(length = 20)
-    private long foldid;
+    // getters and setters
 
-    @Column(length = 20)
-    private String foldname;
+    public String getFilename() {
+        return filename;
+    }
 
-    @Column(length = 20)
-    private String  filelable;
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
-    @Column(nullable = false,length = 20)
-    private String  type;
+    public String getUpdateTime() {
+        return updateTime;
+    }
 
-    @Column(nullable = false,length = 20)
-    private String  size;
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
 
-    @Column(nullable = false)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date update_time;
+    public String getUpdater() {
+        return updater;
+    }
 
-    @Column(nullable = false)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date delete_time;
+    public void setUpdater(String updater) {
+        this.updater = updater;
+    }
 
-    @Column(nullable = false,length = 20)
-    private String  link;
+    public String getSize() {
+        return size;
+    }
 
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public int getShare() {
+        return share;
+    }
+
+    public void setShare(int share) {
+        this.share = share;
+    }
 }

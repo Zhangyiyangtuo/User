@@ -61,4 +61,9 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
+
+    @Override
+    public User findByUid(long uid) {
+        return userDao.findByUid(uid);
+    }
 }
