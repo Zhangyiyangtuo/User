@@ -30,4 +30,14 @@ public class FileController {
             return Result.error("1", "添加文件失败");
         }
     }
+    @PostMapping("/move")
+    public Result moveFile(@RequestParam long userid, @RequestParam String prev_path, @RequestParam String new_path) {
+        boolean result = fileService.moveFile(userid, prev_path, new_path);
+        if (result) {
+            return Result.success(null, "success");
+        } else {
+            return Result.error("1", "移动文件失败");
+        }
+    }
+
 }

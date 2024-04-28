@@ -114,4 +114,43 @@ public class FileServiceImpl implements FileService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public boolean moveFile(long userid, String prevPath, String newPath) {
+        String username = userService.getUsernameById(userid);
+        if (username == null) {
+            return false;
+        }
+
+        String fullPrevPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + prevPath;
+        Path oldPath = Paths.get(fullPrevPath);
+        if (!Files.exists(oldPath)) {
+            return false;
+        }
+
+        // Extract the file name from the old path
+        String fileName = oldPath.getFileName().toString();
+
+        // Append the file name to the new path
+        String fullNewPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + newPath + "/" + fileName;
+
+        // Create the new directory if it does not exist
+        Path newDirPath = Paths.get(System.getProperty("user.home") + "/Desktop/test/" + username + "/" + newPath);
+        if (!Files.exists(newDirPath)) {
+            try {
+                Files.createDirectories(newDirPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        try {
+            Files.move(oldPath, Paths.get(fullNewPath));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     }
