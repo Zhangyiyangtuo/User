@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
@@ -201,4 +198,49 @@ public class FileServiceImpl implements FileService {
             return -1;
         }
     }
+    public void downloadFile(String fileUrl) {
+        try {
+            URL url = new URL(fileUrl);
+            String[] pathParts = url.getPath().split("/");
+            String fileName = pathParts[pathParts.length - 1];
+
+            Path localPath = Paths.get(System.getProperty("user.home") + "/Desktop/test/tmp/" + fileName);
+            try (InputStream in = url.openStream();
+                 ReadableByteChannel rbc = Channels.newChannel(in)) {
+                Files.write(localPath, in.readAllBytes(), StandardOpenOption.CREATE);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+    @Override
+    public boolean updateFile(long userid, String filePath, String fileUrl) {
+        String username = userService.getUsernameById(userid);
+        if (username == null) {
+            return false;
+        }
+
+        String fullFilePath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + filePath;
+        Path oldPath = Paths.get(fullFilePath);
+        if (!Files.exists(oldPath)) {
+            return false;
+        }
+
+        // Extract the file name from the file path
+        String[] pathParts = fileUrl.split("/");
+        String fileName = pathParts[pathParts.length - 1];
+
+        // Download the new file to a temporary location
+        downloadFile(fileUrl);
+
+        // Replace the old file with the new file
+        Path tempPath = Paths.get(System.getProperty("user.home") + "/Desktop/test/tmp/" + fileName);
+        try {
+            Files.move(tempPath, oldPath, StandardCopyOption.REPLACE_EXISTING);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}

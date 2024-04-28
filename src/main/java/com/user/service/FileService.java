@@ -12,4 +12,5 @@ public interface FileService {
     public boolean moveFile(long userid, String prevPath, String newPath);
     boolean renameFile(long userid, String filePath, String newName);
     int countFiles(Long userid);
+    boolean updateFile(long userid, String filePath, String fileUrl);
 }

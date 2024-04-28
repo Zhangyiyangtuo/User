@@ -59,4 +59,13 @@ public class FileController {
             return Result.error("1", "获取文件数量失败");
         }
     }
+    @PostMapping("/update")
+    public Result updateFile(@RequestParam long userid, @RequestParam String file_path, @RequestParam String file_url) {
+        boolean result = fileService.updateFile(userid, file_path, file_url);
+        if (result) {
+            return Result.success(null, "success");
+        } else {
+            return Result.error("1", "更新文件失败");
+        }
+    }
 }
