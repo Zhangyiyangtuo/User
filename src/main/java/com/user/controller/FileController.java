@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+
 @RestController
 @RequestMapping("/api/file")
 public class FileController {
@@ -46,6 +48,15 @@ public class FileController {
             return Result.success(null, "success");
         } else {
             return Result.error("1", "重命名文件失败");
+        }
+    }
+    @PostMapping("/count")
+    public Result countFiles(@RequestParam(required = false) Long userid) {
+        int count = fileService.countFiles(userid);
+        if (count >= 0) {
+            return Result.success(Collections.singletonMap("count", count), "success");
+        } else {
+            return Result.error("1", "获取文件数量失败");
         }
     }
 }

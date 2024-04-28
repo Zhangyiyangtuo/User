@@ -17,6 +17,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
+import java.util.stream.Stream;
 
 @Service
 public class FileServiceImpl implements FileService {
@@ -178,6 +179,26 @@ public class FileServiceImpl implements FileService {
         } catch (IOException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    @Override
+    public int countFiles(Long userid) {
+        String basePath;
+        if (userid != null) {
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return -1;
+            }
+            basePath = System.getProperty("user.home") + "/Desktop/test/" + username;
+        } else {
+            basePath = System.getProperty("user.home") + "/Desktop/test/";
+        }
+
+        try (Stream<Path> files = Files.walk(Paths.get(basePath))) {
+            return (int) files.filter(Files::isRegularFile).count();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return -1;
         }
     }
     }

@@ -11,4 +11,5 @@ public interface FileService {
     public void downloadFile(String fileUrl, String username);
     public boolean moveFile(long userid, String prevPath, String newPath);
     boolean renameFile(long userid, String filePath, String newName);
+    int countFiles(Long userid);
 }
