@@ -97,4 +97,14 @@ public class UserController {
             return Result.error("1", "用户不存在");
         }
     }
+    @PostMapping("/update")
+    public Result updateUserInfo(@RequestParam long userid, @RequestParam String email, @RequestParam String name){
+        boolean result = userService.updateUserInfo(userid, email);
+        if (result) {
+            return Result.success(null, "success");
+        } else {
+            return Result.error("1", "不存在该用户");
+        }
+    }
+
 }

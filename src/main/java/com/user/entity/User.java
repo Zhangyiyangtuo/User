@@ -37,6 +37,9 @@ public class User implements Serializable {
     @Column(nullable = false)
     private int avatarID;
 
+    public String getUsername() {
+        return username;
+    }
     /*
     @Column(nullable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

@@ -7,6 +7,9 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.Optional;
+
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -43,6 +46,13 @@ public class UserServiceImpl implements UserService {
             newUser.setAvatarID(0);
 
             userDao.save(newUser);
+            try {
+                String[] cmd = { "/bin/sh", "-c", "mkdir -p ~/Desktop/test/" + username };
+                Process proc = Runtime.getRuntime().exec(cmd);
+                proc.waitFor();
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
             return 1;
         }
     }
@@ -65,5 +75,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByUid(long uid) {
         return userDao.findByUid(uid);
+    }
+    @Override
+    public boolean updateUserInfo(long uid, String username) {
+        User user = userDao.findByUid(uid);
+        if (user != null) {
+            user.setUsername(username);
+            userDao.save(user);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public String getUsernameById(long userid) {
+        Optional<User> user = userDao.findById(userid);
+        return user.map(User::getUsername).orElse(null);
     }
 }
