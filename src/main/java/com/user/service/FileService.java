@@ -10,4 +10,5 @@ public interface FileService {
     boolean addFile(long userid, String filename, String size, String fileUrl);
     public void downloadFile(String fileUrl, String username);
     public boolean moveFile(long userid, String prevPath, String newPath);
+    boolean renameFile(long userid, String filePath, String newName);
 }

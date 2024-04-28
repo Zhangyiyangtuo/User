@@ -153,4 +153,31 @@ public class FileServiceImpl implements FileService {
             return false;
         }
     }
+    @Override
+    public boolean renameFile(long userid, String filePath, String newName) {
+        String username = userService.getUsernameById(userid);
+        if (username == null) {
+            return false;
+        }
+
+        String fullFilePath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + filePath;
+        Path oldPath = Paths.get(fullFilePath);
+        if (!Files.exists(oldPath)) {
+            return false;
+        }
+
+        // Extract the directory path from the old path
+        Path dirPath = oldPath.getParent();
+
+        // Create the new path with the new name
+        Path newPath = Paths.get(dirPath.toString(), newName);
+
+        try {
+            Files.move(oldPath, newPath);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     }

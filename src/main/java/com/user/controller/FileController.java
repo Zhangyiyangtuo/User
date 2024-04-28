@@ -39,5 +39,13 @@ public class FileController {
             return Result.error("1", "移动文件失败");
         }
     }
-
+    @PostMapping("/rename")
+    public Result renameFile(@RequestParam long userid, @RequestParam String file_path, @RequestParam String new_name) {
+        boolean result = fileService.renameFile(userid, file_path, new_name);
+        if (result) {
+            return Result.success(null, "success");
+        } else {
+            return Result.error("1", "重命名文件失败");
+        }
+    }
 }
