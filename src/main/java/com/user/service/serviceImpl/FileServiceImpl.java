@@ -11,6 +11,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -273,6 +274,43 @@ public class FileServiceImpl implements FileService {
                         }
                         return file;
                     })
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading files", e);
+        }
+        return files;
+    }
+    @Override
+    public List<File> getRecentFiles(String userid) {
+        String username = userService.getUsernameById(Long.parseLong(userid));
+        if (username == null) {
+            throw new IllegalArgumentException("Invalid userid");
+        }
+
+        String basePath = System.getProperty("user.home") + "/Desktop/test/" + username;
+        List<File> files;
+        try (Stream<Path> paths = Files.walk(Paths.get(basePath))) {
+            files = paths
+                    .filter(Files::isRegularFile)
+                    .map(path -> {
+                        // create a File object from the Path
+                        File file = new File();
+                        file.setFilename(path.getFileName().toString());
+                        file.setUpdater(username);
+                        try {
+                            file.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
+                            file.setSize(Files.size(path) + " bytes");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return file;
+                    })
+                    .filter(file -> {
+                        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+                        return LocalDateTime.parse(file.getUpdateTime()).isAfter(oneMonthAgo);
+                    })
+                    .sorted(Comparator.comparing(File::getUpdateTime).reversed())
+                    .limit(10)
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("Error reading files", e);

@@ -75,4 +75,9 @@ public class FileController {
         List<File> files = fileService.searchFiles(userid, filename);
         return ResponseEntity.ok(files);
     }
+    @PostMapping("/recent")
+    public ResponseEntity<List<File>> getRecentFiles(@RequestParam String userid) {
+        List<File> files = fileService.getRecentFiles(userid);
+        return ResponseEntity.ok(files);
+    }
 }
