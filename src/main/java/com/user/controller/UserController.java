@@ -106,5 +106,21 @@ public class UserController {
             return Result.error("1", "不存在该用户");
         }
     }
+    @PostMapping("/updatePassword")
+    public Result updatePassword(@RequestParam long userid, @RequestParam String password, @RequestParam String NewPassword) {
+        User user = userService.findByUid(userid);
+        if (user == null) {
+            return Result.error("1", "不存在该用户");
+        } else if (!user.getPassword().equals(password)) {
+            return Result.error("1", "密码错误");
+        } else {
+            boolean result = userService.changePassword(userid, NewPassword);
+            if (result) {
+                return Result.success(null, "success");
+            } else {
+                return Result.error("1", "修改失败"); //处理问题或者数据库问题
+            }
+        }
+    }
 
 }

@@ -93,4 +93,15 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userDao.findById(userid);
         return user.map(User::getUsername).orElse(null);
     }
+    @Override
+    public boolean changePassword(long userid, String newPassword) {
+        User user = userDao.findByUid(userid);
+        if (user != null) {
+            user.setPassword(newPassword);
+            userDao.save(user);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

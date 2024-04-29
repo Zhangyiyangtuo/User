@@ -14,4 +14,5 @@ public interface UserService {
     User findByUid(long l);
     boolean updateUserInfo(long uid, String username);
     String getUsernameById(long userid);
+    boolean changePassword(long userid, String newPassword);
 }
