@@ -7,7 +7,9 @@ import com.user.utils.Result;
 import com.user.utils.JwtTokenUtil; // 导入 JwtTokenUtil 类
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/user")
@@ -99,7 +101,7 @@ public class UserController {
     }
     @PostMapping("/update")
     public Result updateUserInfo(@RequestParam long userid, @RequestParam String email, @RequestParam String name){
-        boolean result = userService.updateUserInfo(userid, email);
+        boolean result = userService.updateUserEmailAndName(userid, email, name);
         if (result) {
             return Result.success(null, "success");
         } else {
@@ -122,5 +124,13 @@ public class UserController {
             }
         }
     }
-
+//    @PostMapping("/update")
+//    public Result updateUserInfo(@RequestParam long userid, @RequestParam String name){
+//        boolean result = userService.updateUserInfo(userid, name);
+//        if (result) {
+//            return Result.success();
+//        } else {
+//            return Result.error("1", "不存在该用户");
+//        }
+//    }
 }

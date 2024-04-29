@@ -4,7 +4,7 @@ import com.user.entity.User;
 import com.user.repository.UserDao;
 import com.user.service.UserService;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -98,6 +98,18 @@ public class UserServiceImpl implements UserService {
         User user = userDao.findByUid(userid);
         if (user != null) {
             user.setPassword(newPassword);
+            userDao.save(user);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    @Override
+    public boolean updateUserEmailAndName(long uid, String email, String name) {
+        User user = userDao.findByUid(uid);
+        if (user != null) {
+            user.setEmail(email);
+            user.setUsername(name);
             userDao.save(user);
             return true;
         } else {
