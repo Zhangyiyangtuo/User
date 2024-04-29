@@ -80,4 +80,13 @@ public class FileController {
         List<File> files = fileService.getRecentFiles(userid);
         return ResponseEntity.ok(files);
     }
+    @PostMapping("/delete")
+    public Result deleteFile(@RequestParam long userid, @RequestParam String file_path){
+        boolean result = fileService.deleteFile(userid, file_path);
+        if (result) {
+            return Result.success(null, "success");
+        } else {
+            return Result.error("1", "删除文件失败");
+        }
+    }
 }

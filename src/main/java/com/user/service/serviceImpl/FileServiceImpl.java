@@ -332,4 +332,21 @@ public class FileServiceImpl implements FileService {
         }
         return files;
     }
+    @Override
+    public boolean deleteFile(long userid, String filePath) {
+        String username = userService.getUsernameById(userid);
+        if (username == null) {
+            return false;
+        }
+
+        String fullFilePath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + filePath;
+        Path path = Paths.get(fullFilePath);
+        try {
+            Files.delete(path);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

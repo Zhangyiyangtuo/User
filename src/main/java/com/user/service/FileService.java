@@ -14,4 +14,5 @@ public interface FileService {
     boolean updateFile(long userid, String filePath, String fileUrl);
     List<File> searchFiles(String userid, String filename);
     List<File> getRecentFiles(String userid);
+    public boolean deleteFile(long userid, String filePath);
 }
