@@ -1,6 +1,6 @@
 package com.user.service.serviceImpl;
 
-import com.user.entity.File;
+import com.user.entity.MyFile;
 import com.user.service.FileService;
 import com.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +10,8 @@ import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.net.URL;
 import java.util.stream.Collectors;
@@ -27,7 +24,7 @@ public class FileServiceImpl implements FileService {
 
     // In FileServiceImpl.java
     @Override
-    public List<File> getAllFiles(Long userid, int sortord, int order) {
+    public List<MyFile> getAllFiles(Long userid, int sortord, int order) {
         String basePath;
         if (userid != null) {
             String username = userService.getUsernameById(userid);
@@ -39,44 +36,44 @@ public class FileServiceImpl implements FileService {
             basePath = System.getProperty("user.home") + "/Desktop/test/";
         }
 
-        List<File> files;
+        List<MyFile> myFiles;
         try (Stream<Path> paths = Files.walk(Paths.get(basePath))) {
-            files = paths
+            myFiles = paths
                     .filter(Files::isRegularFile)
                     .map(path -> {
                         // create a File object from the Path
-                        File file = new File();
-                        file.setFilename(path.getFileName().toString());
+                        MyFile myFile = new MyFile();
+                        myFile.setFilename(path.getFileName().toString());
                         // Get the parent directory name
                         String updater = getUpdater(path);
                         // Set updater to the top level directory name under ~/Desktop/test/
-                        file.setUpdater(updater);
+                        myFile.setUpdater(updater);
                         try {
-                            file.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
-                            file.setSize(Files.size(path) + " bytes");
+                            myFile.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
+                            myFile.setSize(Files.size(path) + " bytes");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        return file;
+                        return myFile;
                     })
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("Error reading files", e);
         }
 
-        Comparator<File> comparator = switch (sortord) {
-            case 1 -> Comparator.comparing(File::getUpdateTime);
-            case 2 -> Comparator.comparing(File::getUpdateTime);
-            case 3 -> Comparator.comparing(File::getSize);
-            case 4 -> Comparator.comparing(File::getFilename);
+        Comparator<MyFile> comparator = switch (sortord) {
+            case 1 -> Comparator.comparing(MyFile::getUpdateTime);
+            case 2 -> Comparator.comparing(MyFile::getUpdateTime);
+            case 3 -> Comparator.comparing(MyFile::getSize);
+            case 4 -> Comparator.comparing(MyFile::getFilename);
             default -> throw new IllegalArgumentException("Invalid sortord value");
         };
         if (order == 2) {
             comparator = comparator.reversed();
         }
-        files.sort(comparator);
+        myFiles.sort(comparator);
 
-        return files;
+        return myFiles;
     }
 
     private String getUpdater(Path path) {
@@ -264,73 +261,73 @@ public class FileServiceImpl implements FileService {
     }
     // In FileServiceImpl.java
     @Override
-    public List<File> searchFiles(String userid, String filename) {
+    public List<MyFile> searchFiles(String userid, String filename) {
         String username = userService.getUsernameById(Long.parseLong(userid));
         if (username == null) {
             throw new IllegalArgumentException("Invalid userid");
         }
 
         String basePath = System.getProperty("user.home") + "/Desktop/test/" + username;
-        List<File> files;
+        List<MyFile> myFiles;
         try (Stream<Path> paths = Files.walk(Paths.get(basePath))) {
-            files = paths
+            myFiles = paths
                     .filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().contains(filename))
                     .map(path -> {
                         // create a File object from the Path
-                        File file = new File();
-                        file.setFilename(path.getFileName().toString());
-                        file.setUpdater(username);
+                        MyFile myFile = new MyFile();
+                        myFile.setFilename(path.getFileName().toString());
+                        myFile.setUpdater(username);
                         try {
-                            file.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
-                            file.setSize(Files.size(path) + " bytes");
+                            myFile.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
+                            myFile.setSize(Files.size(path) + " bytes");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        return file;
+                        return myFile;
                     })
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("Error reading files", e);
         }
-        return files;
+        return myFiles;
     }
     @Override
-    public List<File> getRecentFiles(String userid) {
+    public List<MyFile> getRecentFiles(String userid) {
         String username = userService.getUsernameById(Long.parseLong(userid));
         if (username == null) {
             throw new IllegalArgumentException("Invalid userid");
         }
 
         String basePath = System.getProperty("user.home") + "/Desktop/test/" + username;
-        List<File> files;
+        List<MyFile> myFiles;
         try (Stream<Path> paths = Files.walk(Paths.get(basePath))) {
-            files = paths
+            myFiles = paths
                     .filter(Files::isRegularFile)
                     .map(path -> {
                         // create a File object from the Path
-                        File file = new File();
-                        file.setFilename(path.getFileName().toString());
-                        file.setUpdater(username);
+                        MyFile myFile = new MyFile();
+                        myFile.setFilename(path.getFileName().toString());
+                        myFile.setUpdater(username);
                         try {
-                            file.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
-                            file.setSize(Files.size(path) + " bytes");
+                            myFile.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
+                            myFile.setSize(Files.size(path) + " bytes");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        return file;
+                        return myFile;
                     })
-                    .filter(file -> {
+                    .filter(myFile -> {
                         LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
-                        return LocalDateTime.parse(file.getUpdateTime()).isAfter(oneMonthAgo);
+                        return LocalDateTime.parse(myFile.getUpdateTime()).isAfter(oneMonthAgo);
                     })
-                    .sorted(Comparator.comparing(File::getUpdateTime).reversed())
+                    .sorted(Comparator.comparing(MyFile::getUpdateTime).reversed())
                     .limit(10)
                     .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("Error reading files", e);
         }
-        return files;
+        return myFiles;
     }
     @Override
     public boolean deleteFile(long userid, String filePath) {

@@ -1,10 +1,10 @@
 # Backend
 
-This is a webdisk System built with Java and Spring Boot. It provides functionalities such as file management, user management, and more.
+This is a webdisk System built with Java and Spring Boot. It provides functionalities such as myFile management, user management, and more.
 
 ## Features
 
-- File Management: Users can add, move, rename, count, update, search, and get recent files.
+- File Management: Users can add, move, rename, count, update, search, and get recent myFiles.
 - User Management: Get username by user ID.
 
 ## Getting Started
@@ -50,7 +50,7 @@ mvn spring-boot:run
 
 
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) myFile for details
 
 ## Acknowledgments
 

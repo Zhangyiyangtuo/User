@@ -2,7 +2,7 @@ package com.user.entity;
 
 import lombok.Setter;
 
-public class File {
+public class MyFile {
     @Setter
     private String filename;
     private String updateTime;
