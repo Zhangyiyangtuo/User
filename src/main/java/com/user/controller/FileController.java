@@ -69,4 +69,10 @@ public class FileController {
             return Result.error("1", "更新文件失败");
         }
     }
+    @PostMapping("/search")
+    public ResponseEntity<List<File>> searchFiles(@RequestParam String userid,
+                                                  @RequestParam String filename) {
+        List<File> files = fileService.searchFiles(userid, filename);
+        return ResponseEntity.ok(files);
+    }
 }

@@ -12,4 +12,5 @@ public interface FileService {
     boolean renameFile(long userid, String filePath, String newName);
     int countFiles(Long userid);
     boolean updateFile(long userid, String filePath, String fileUrl);
+    List<File> searchFiles(String userid, String filename);
 }

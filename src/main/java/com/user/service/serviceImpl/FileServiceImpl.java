@@ -246,4 +246,37 @@ public class FileServiceImpl implements FileService {
             return false;
         }
     }
+    // In FileServiceImpl.java
+    @Override
+    public List<File> searchFiles(String userid, String filename) {
+        String username = userService.getUsernameById(Long.parseLong(userid));
+        if (username == null) {
+            throw new IllegalArgumentException("Invalid userid");
+        }
+
+        String basePath = System.getProperty("user.home") + "/Desktop/test/" + username;
+        List<File> files;
+        try (Stream<Path> paths = Files.walk(Paths.get(basePath))) {
+            files = paths
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().contains(filename))
+                    .map(path -> {
+                        // create a File object from the Path
+                        File file = new File();
+                        file.setFilename(path.getFileName().toString());
+                        file.setUpdater(username);
+                        try {
+                            file.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
+                            file.setSize(Files.size(path) + " bytes");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return file;
+                    })
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading files", e);
+        }
+        return files;
+    }
 }
