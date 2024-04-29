@@ -5,10 +5,14 @@ import com.user.service.UserService;
 import com.user.service.serviceImpl.FileServiceImpl;
 import com.user.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.io.IOException;
@@ -121,6 +125,28 @@ public Result addFile(@RequestParam long userid,
             return Result.success(null, "success");
         } else {
             return Result.error("1", "删除文件失败");
+        }
+    }
+    @GetMapping("/download")
+    public ResponseEntity<Resource> downloadFile(@RequestParam long userid, @RequestParam String file_path) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return ResponseEntity.badRequest().body(null);
+            }
+            // 构造文件的完整路径
+            String filePath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + file_path;
+            // 创建一个UrlResource对象，它代表了要下载的文件
+            Resource resource = new UrlResource(Paths.get(filePath).toUri());
+            // 创建一个HTTP头信息对象，它告诉浏览器这是一个文件下载的响应
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"");
+            // 返回一个ResponseEntity对象，它包含了要下载的文件的内容和HTTP头信息
+            return ResponseEntity.ok().headers(headers).body(resource);
+        } catch (Exception e) {
+            // 如果出现任何异常，返回一个错误的响应
+            return ResponseEntity.badRequest().body(null);
         }
     }
 }
