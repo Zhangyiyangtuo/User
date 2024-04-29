@@ -1,12 +1,11 @@
 package com.user.service;
 
 import com.user.entity.File;
-import com.user.entity.FileRequest;
 
 import java.util.List;
 
 public interface FileService {
-    public List<File> getFileInfos(FileRequest request);
+    List<File> getAllFiles(Long userid, int sortord, int order);
     boolean addFile(long userid, String filename, String size, String fileUrl);
     public void downloadFile(String fileUrl, String username);
     public boolean moveFile(long userid, String prevPath, String newPath);

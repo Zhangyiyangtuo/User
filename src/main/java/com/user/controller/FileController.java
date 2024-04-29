@@ -1,7 +1,6 @@
 package com.user.controller;
 
-import com.user.entity.FileRequest;
-import com.user.entity.FileResponse;
+import com.user.entity.File;
 import com.user.service.serviceImpl.FileServiceImpl;
 import com.user.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/file")
@@ -17,12 +17,13 @@ public class FileController {
     private FileServiceImpl fileService;
 
     @PostMapping("/getAll")
-    public ResponseEntity<Object> getFileInfo(@RequestBody FileRequest request) {
-        FileResponse response = new FileResponse();
-        response.setErrorCode(0);
-        response.setData(fileService.getFileInfos(request));
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Object> getAllFiles(@RequestParam(required = false) Long userid,
+                                              @RequestParam int sortord,
+                                              @RequestParam int order) {
+        List<File> files = fileService.getAllFiles(userid, sortord, order);
+        return ResponseEntity.ok(files);
     }
+
     @PostMapping("/add")
     public Result addFile(@RequestParam long userid, @RequestParam String filename, @RequestParam String size, @RequestParam String fileUrl) {
         boolean result = fileService.addFile(userid, filename, size, fileUrl);

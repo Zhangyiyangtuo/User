@@ -1,7 +1,6 @@
 package com.user.service.serviceImpl;
 
 import com.user.entity.File;
-import com.user.entity.FileRequest;
 import com.user.service.FileService;
 import com.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +10,13 @@ import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.net.URL;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -21,59 +24,59 @@ public class FileServiceImpl implements FileService {
     @Autowired
     private UserService userService;
 
-    public List<File> getFileInfos(FileRequest request) {
-        List<File> files = new ArrayList<>();
-        try {
-//
-            java.io.File outputFile = new java.io.File(System.getProperty("user.home") + "/Desktop/test/file.txt");
-
-            // 执行 ls 命令
-            Process process = Runtime.getRuntime().exec("ls -la " + request.getPath());
-
-            // 获取命令的输出流
-            InputStream inputStream = process.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            // 将输出流写入到文件中
-            BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.getAbsolutePath()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                writer.write(line);
-                writer.newLine();
+    // In FileServiceImpl.java
+    @Override
+    public List<File> getAllFiles(Long userid, int sortord, int order) {
+        String basePath;
+        String updater;
+        if (userid != null) {
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                throw new IllegalArgumentException("Invalid userid");
             }
-
-            // 关闭流
-            writer.close();
-            reader.close();
-
-            // 等待命令执行完成
-            int exitVal = process.waitFor();
-            if (exitVal == 0) {
-                // 命令执行成功，读取文件并创建File对象
-                BufferedReader fileReader = new BufferedReader(new FileReader(outputFile));
-                String fileLine;
-                while ((fileLine = fileReader.readLine()) != null) {
-                    String[] parts = fileLine.split("\\s+");
-                    if (parts.length >= 9) {
-                        File file = new File();
-                        file.setFilename(parts[8]);
-                        file.setSize(parts[4]);
-                        file.setUpdateTime(parts[5] + " " + parts[6] + " " + parts[7]);
-                        file.setUpdater(parts[2]);
-                        files.add(file);
-                    }
-                }
-                fileReader.close();
-            } else {
-                // 命令执行失败
-                System.out.println("命令执行失败");
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            basePath = System.getProperty("user.home") + "/Desktop/test/" + username;
+            updater = username;
+        } else {
+            basePath = System.getProperty("user.home") + "/Desktop/test/";
+            updater = "root";
         }
+
+        List<File> files;
+        try (Stream<Path> paths = Files.walk(Paths.get(basePath))) {
+            files = paths
+                    .filter(Files::isRegularFile)
+                    .map(path -> {
+                        // create a File object from the Path
+                        File file = new File();
+                        file.setFilename(path.getFileName().toString());
+                        file.setUpdater(updater);
+                        try {
+                            file.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
+                            file.setSize(Files.size(path) + " bytes");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return file;
+                    })
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading files", e);
+        }
+
+        Comparator<File> comparator = switch (sortord) {
+            case 1 -> Comparator.comparing(File::getUpdateTime);
+            case 2 -> Comparator.comparing(File::getUpdateTime);
+            case 3 -> Comparator.comparing(File::getSize);
+            case 4 -> Comparator.comparing(File::getFilename);
+            default -> throw new IllegalArgumentException("Invalid sortord value");
+        };
+        if (order == 2) {
+            comparator = comparator.reversed();
+        }
+        files.sort(comparator);
+
         return files;
     }
-
     @Override
     public boolean addFile(long userid, String filename, String size, String fileUrl) {
         String username = userService.getUsernameById(userid);
