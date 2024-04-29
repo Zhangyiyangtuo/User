@@ -29,17 +29,14 @@ public class FileServiceImpl implements FileService {
     @Override
     public List<File> getAllFiles(Long userid, int sortord, int order) {
         String basePath;
-        String updater;
         if (userid != null) {
             String username = userService.getUsernameById(userid);
             if (username == null) {
                 throw new IllegalArgumentException("Invalid userid");
             }
             basePath = System.getProperty("user.home") + "/Desktop/test/" + username;
-            updater = username;
         } else {
             basePath = System.getProperty("user.home") + "/Desktop/test/";
-            updater = "root";
         }
 
         List<File> files;
@@ -50,6 +47,9 @@ public class FileServiceImpl implements FileService {
                         // create a File object from the Path
                         File file = new File();
                         file.setFilename(path.getFileName().toString());
+                        // Get the parent directory name
+                        String updater = getUpdater(path);
+                        // Set updater to the top level directory name under ~/Desktop/test/
                         file.setUpdater(updater);
                         try {
                             file.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
@@ -77,6 +77,21 @@ public class FileServiceImpl implements FileService {
         files.sort(comparator);
 
         return files;
+    }
+
+    private String getUpdater(Path path) {
+        Path parentPath = path.getParent();
+        if (parentPath != null && parentPath.getFileName().toString().equals("test")) {
+            return "root";
+        } else {
+            Path ChildrenPath = null;
+            while (parentPath != null && !parentPath.getFileName().toString().equals("test")) {
+                ChildrenPath = parentPath;
+                parentPath = parentPath.getParent();
+            }
+            //获取子文件夹名称
+            return ChildrenPath.getFileName().toString();
+        }
     }
     @Override
     public boolean addFile(long userid, String filename, String size, String fileUrl) {
