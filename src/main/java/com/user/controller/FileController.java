@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -148,5 +149,21 @@ public Result addFile(@RequestParam long userid,
             // 如果出现任何异常，返回一个错误的响应
             return ResponseEntity.badRequest().body(null);
         }
+    }
+    @PostMapping("/folder/add")
+    public ResponseEntity<Object> addFolder(@RequestParam long userid, @RequestParam String path, @RequestParam String name) {
+        // 获取用户名
+        String username = userService.getUsernameById(userid);
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "用户不存在"));
+        }
+        // 构造文件夹的完整路径
+        String folderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + name;
+        File folder = new File(folderPath);
+        // 如果文件夹不存在，创建它
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        return ResponseEntity.ok(Collections.singletonMap("message", "succeed"));
     }
 }
