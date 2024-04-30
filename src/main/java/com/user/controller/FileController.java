@@ -151,19 +151,46 @@ public Result addFile(@RequestParam long userid,
         }
     }
     @PostMapping("/folder/add")
-    public ResponseEntity<Object> addFolder(@RequestParam long userid, @RequestParam String path, @RequestParam String name) {
-        // 获取用户名
-        String username = userService.getUsernameById(userid);
-        if (username == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "用户不存在"));
+    public Result addFolder(@RequestParam long userid, @RequestParam String path, @RequestParam String name) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return Result.error("1", "用户不存在");
+            }
+            // 构造文件夹的完整路径
+            String folderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + name;
+            File folder = new File(folderPath);
+            // 如果文件夹不存在，创建它
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            return Result.success(null, "succeed");
+        } catch (Exception e) {
+            return Result.error("1", "创建文件夹失败: " + e.getMessage());
         }
-        // 构造文件夹的完整路径
-        String folderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + name;
-        File folder = new File(folderPath);
-        // 如果文件夹不存在，创建它
-        if (!folder.exists()) {
-            folder.mkdirs();
+    }
+
+    @PostMapping("folder/rename")
+    public Result renameFolder(@RequestParam long userid, @RequestParam String path, @RequestParam String pre_name, @RequestParam String new_name) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return Result.error("1", "用户不存在");
+            }
+            // 构造旧文件夹和新文件夹的完整路径
+            String oldFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + pre_name;
+            String newFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + new_name;
+            File oldFolder = new File(oldFolderPath);
+            File newFolder = new File(newFolderPath);
+            // 如果旧文件夹存在，且新文件夹不存在，重命名它
+            if (oldFolder.exists() && !newFolder.exists()) {
+                oldFolder.renameTo(newFolder);
+            }
+            return Result.success(null, "succeed");
+        } catch (Exception e) {
+            return Result.error("1", "重命名文件夹失败: " + e.getMessage());
         }
-        return ResponseEntity.ok(Collections.singletonMap("message", "succeed"));
     }
 }
