@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -173,6 +177,34 @@ public class UserController {
             return Result.success(null, "succeed");
         } catch (Exception e) {
             return Result.error("1", "上传照片失败: " + e.getMessage());
+        }
+    }
+    @GetMapping("/photo/browse")
+    public Result browsePhotos(@RequestParam long userid, @RequestParam long albumId) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return Result.error("1", "用户不存在");
+            }
+            // 查询数据库中所有对应albumId的photoname
+            List<Photo2Album> photos = photo2AlbumDao.findByAlbumid(albumId);
+            if (photos == null || photos.isEmpty()) {
+                return Result.error("1", "相册中没有照片");
+            }
+            // 构造返回的数据
+            List<Map<String, String>> data = new ArrayList<>();
+            for (Photo2Album photo : photos) {
+                Map<String, String> photoData = new HashMap<>();
+                photoData.put("photoname", photo.getPhotoname());
+                // 构造照片的URL
+                String photoUrl = "photo/"  + photo.getPhotoname();
+                photoData.put("photoUrl", photoUrl);
+                data.add(photoData);
+            }
+            return Result.success(data, "success");
+        } catch (Exception e) {
+            return Result.error("1", "浏览照片失败: " + e.getMessage());
         }
     }
 }

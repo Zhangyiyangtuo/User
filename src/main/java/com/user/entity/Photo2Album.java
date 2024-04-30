@@ -28,5 +28,9 @@ public class Photo2Album {
         this.albumid = (int) albumId;
     }
 
+    public String getPhotoname() {
+        return photoname;
+    }
+
     // getters and setters
 }
