@@ -5,6 +5,7 @@ import com.user.service.FileService;
 import com.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.user.repository.Photo2AlbumDao;
 
 import java.io.*;
 import java.nio.channels.Channels;

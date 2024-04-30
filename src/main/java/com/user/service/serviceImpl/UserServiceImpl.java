@@ -4,6 +4,7 @@ import com.user.entity.User;
 import com.user.repository.UserDao;
 import com.user.service.UserService;
 import jakarta.annotation.Resource;
+import com.user.repository.Photo2AlbumDao;
 
 import org.springframework.stereotype.Service;
 
