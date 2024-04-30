@@ -9,6 +9,7 @@ import com.user.utils.Result;
 import com.user.utils.JwtTokenUtil; // 导入 JwtTokenUtil 类
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,10 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @RestController
@@ -280,6 +278,48 @@ public class UserController {
 
         public String getTime() {
             return time;
+        }
+    }
+// ...
+
+    @PutMapping("/photo/manage")
+    public ResponseEntity<?> managePhotos(@RequestParam String userid) {
+        try {
+            // 使用userid获取username
+            User user = userService.findByUid(Long.parseLong(userid));
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            String username = user.getUsername();
+
+            // 获取/username/photo/目录下的所有照片
+            Path dir = Paths.get(System.getProperty("user.home") + "/Desktop/test/" + username + "/photo/");
+            File[] files = dir.toFile().listFiles();
+            if (files == null || files.length == 0) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No photos found");
+            }
+
+            // 按修改时间排序
+            Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
+
+            // 构造返回的数据
+            List<Map<String, String>> data = new ArrayList<>();
+            for (File file : files) {
+                Map<String, String> photoData = new HashMap<>();
+                photoData.put("photoname", file.getName());
+                photoData.put("edit_time", new SimpleDateFormat("dd-MM-yy").format(file.lastModified()));
+                data.add(photoData);
+            }
+
+            // 构造返回的响应
+            Map<String, Object> response = new HashMap<>();
+            response.put("error_code", 0);
+            response.put("msg", "success");
+            response.put("data", data);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error managing photos: " + e.getMessage());
         }
     }
 }
