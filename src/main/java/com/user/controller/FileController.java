@@ -193,4 +193,26 @@ public Result addFile(@RequestParam long userid,
             return Result.error("1", "重命名文件夹失败: " + e.getMessage());
         }
     }
+    @PostMapping("folder/move")
+    public Result moveFolder(@RequestParam long userid, @RequestParam String pre_path, @RequestParam String new_path, @RequestParam String name) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return Result.error("1", "用户不存在");
+            }
+            // 构造旧文件夹和新文件夹的完整路径
+            String oldFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + pre_path + "/" + name;
+            String newFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + new_path + "/" + name;
+            File oldFolder = new File(oldFolderPath);
+            File newFolder = new File(newFolderPath);
+            // 如果旧文件夹存在，且新文件夹不存在，移动它
+            if (oldFolder.exists() && !newFolder.exists()) {
+                oldFolder.renameTo(newFolder);
+            }
+            return Result.success(null, "succeed");
+        } catch (Exception e) {
+            return Result.error("1", "移动文件夹失败: " + e.getMessage());
+        }
+    }
 }
