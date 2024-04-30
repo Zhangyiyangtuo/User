@@ -12,4 +12,5 @@ import java.util.List;
 public interface Photo2AlbumDao extends JpaRepository<Photo2Album, Photo2AlbumId> {
 
     List<Photo2Album> findByAlbumid(long albumId);
+    Photo2Album findByUidAndPhotoname(long uid, String photoname);
 }

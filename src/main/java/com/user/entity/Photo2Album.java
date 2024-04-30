@@ -32,5 +32,17 @@ public class Photo2Album {
         return photoname;
     }
 
+    public String getPhoto() {
+        return photoname;
+    }
+
+    public String getPath() {
+        return photoname;
+    }
+
+    public String getAlbumid() {
+        return String.valueOf(albumid);
+    }
+
     // getters and setters
 }

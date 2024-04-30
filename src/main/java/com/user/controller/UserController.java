@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -205,6 +209,77 @@ public class UserController {
             return Result.success(data, "success");
         } catch (Exception e) {
             return Result.error("1", "浏览照片失败: " + e.getMessage());
+        }
+    }
+    @GetMapping("/photo/view")
+    public ResponseEntity<?> viewPhoto(@RequestParam long userid, @RequestParam String photo) {
+        try {
+            // 使用userid获取username
+            User user = userService.findByUid(userid);
+            if (user == null) {
+                return ResponseEntity.status(404).body("User not found");
+            }
+            String username = user.getUsername();
+
+            // 在/username/photo/目录下按照photo名查询
+            Path path = Paths.get(System.getProperty("user.home") + "/Desktop/test/" + username + "/photo/" + photo);
+            if (!Files.exists(path)) {
+                return ResponseEntity.status(404).body("Photo not found");
+            }
+            File file = path.toFile();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy");
+            String time = sdf.format(file.lastModified());
+            String size = Files.size(path) + " bytes";
+            String type = Files.probeContentType(path);
+
+            // 使用userid和photo查询albumid
+            Photo2Album photo2Album = photo2AlbumDao.findByUidAndPhotoname(userid, photo);
+            String albumid = photo2Album == null ? "unknown" : String.valueOf(photo2Album.getAlbumid());
+
+            return ResponseEntity.ok(new PhotoResponse(photo, albumid, size, type, path.toString(), time));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error retrieving photo details");
+        }
+    }
+    public class PhotoResponse {
+        private String photoname;
+        private String albumid;
+        private String size;
+        private String type;
+        private String path;
+        private String time;
+
+        public PhotoResponse(String photoname, String albumid, String size, String type, String path, String time) {
+            this.photoname = photoname;
+            this.albumid = albumid;
+            this.size = size;
+            this.type = type;
+            this.path = path;
+            this.time = time;
+        }
+
+        public String getPhotoname() {
+            return photoname;
+        }
+
+        public String getAlbumid() {
+            return albumid;
+        }
+
+        public String getSize() {
+            return size;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getTime() {
+            return time;
         }
     }
 }
