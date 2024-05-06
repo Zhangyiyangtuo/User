@@ -137,17 +137,6 @@ public class UserController {
             }
         }
     }
-//    @PostMapping("/update")
-//    public Result updateUserInfo(@RequestParam long userid, @RequestParam String name){
-//        boolean result = userService.updateUserInfo(userid, name);
-//        if (result) {
-//            return Result.success();
-//        } else {
-//            return Result.error("1", "不存在该用户");
-//        }
-//    }
-
-// ...
 
     @PostMapping("/photo/upload")
     public Result uploadPhoto(@RequestParam long userid, @RequestParam MultipartFile photo, @RequestParam(required = false) String photoName, @RequestParam long albumId) {

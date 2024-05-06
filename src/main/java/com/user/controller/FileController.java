@@ -58,13 +58,6 @@ public Result addFile(@RequestParam long userid,
         // 保存文件到创建的文件夹中
         String fileUrl = userFolderPath + "/" + filename;
         file.transferTo(new File(fileUrl));
-        // 调用你的服务来添加文件
-//        boolean result = fileService.addFile(userid, filename, size, fileUrl);
-//        if (result) {
-//            return Result.success(null, "success");
-//        } else {
-//            return Result.error("1", "添加文件失败");
-//        }
         return Result.success(null, "success");
     } catch (IOException e) {
         e.printStackTrace();
@@ -99,13 +92,17 @@ public Result addFile(@RequestParam long userid,
             return Result.error("1", "获取文件数量失败");
         }
     }
+
     @PostMapping("/update")
-    public Result updateFile(@RequestParam long userid, @RequestParam String file_path, @RequestParam String file_url) {
-        boolean result = fileService.updateFile(userid, file_path, file_url);
-        if (result) {
-            return Result.success(null, "success");
-        } else {
-            return Result.error("1", "更新文件失败");
+    public Result updateFile(@RequestParam long userid, @RequestParam String file_path, @RequestParam MultipartFile file) {
+        try {
+            if (fileService.updateFile(userid, file_path, file)) {
+                return Result.success(null, "success");
+            } else {
+                return Result.error("1", "更新文件失败");
+            }
+        } catch (Exception e) {
+            return Result.error("1", "更新文件失败: " + e.getMessage());
         }
     }
     @PostMapping("/search")
