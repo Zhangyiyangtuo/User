@@ -61,7 +61,7 @@ public class UserController {
         if (result == -1) {
             return Result.error("1", "请输入完整信息！");
         }
-        if (result == -2) { 
+        if (result == -2) {
             return Result.error("1", "用户名已存在！");
         } else {
             return Result.success(null, "success");
@@ -74,7 +74,7 @@ public class UserController {
         emailService.sendVerificationCode(email, code);
         emailService.cacheVerificationCode(email, code); // 缓存验证码
         String token = jwtTokenUtil.generateEmailToken(email);
-        return Result.success(token, null,"success");
+        return Result.success(token, null, "success");
     }
 
     @PostMapping("/verify-code")
@@ -91,29 +91,51 @@ public class UserController {
     @PostMapping("/modify")
     public Result<String> modifyPassword(@RequestParam String token, @RequestParam String newPassword) {
         String email = jwtTokenUtil.parseToken(token).getSubject();
-        boolean result=userService.modifyPassword(email, newPassword);
-        if(result==true)
-        {
-            return Result.success(null,"Password modified successfully");
-        }
-        else{
-            return Result.error("1","未找到对应用户！");
-        }
-
-    }
-
-
-    @GetMapping({"/browse"})
-    public Result checkInfoController(@RequestParam String userid, @RequestParam (required = false) String username, @RequestParam (required=false) String password) {
-        User user = userService.findByUid(Long.parseLong(userid));
-        if (user != null) {
-            return Result.success(user, "success");
+        boolean result = userService.modifyPassword(email, newPassword);
+        if (result == true) {
+            return Result.success(null, "Password modified successfully");
         } else {
-            return Result.error("1", "用户不存在");
+            return Result.error("1", "未找到对应用户！");
+        }
+
+    }
+
+
+    @GetMapping("/get")
+    public Result getUserInfo(@RequestParam long userid) {
+        try {
+            // Use userid to get user
+            User user = userService.findByUid(userid);
+            if (user == null) {
+                return Result.error("1", "User does not exist");
+            }
+            // Get username
+            String username = user.getUsername();
+            // Construct the path of the avatar
+            String avatarPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/avatar/avatar.jpg";
+            File avatarFile = new File(avatarPath);
+            // If the avatar does not exist, return an error
+            if (!avatarFile.exists()) {
+                return Result.error("1", "User does not have an avatar");
+            }
+            // Get space usage
+            int[] spaceUsage = userService.getSpaceUsage(userid);
+            // Construct the returned data
+            Map<String, Object> data = new HashMap<>();
+            data.put("uid", user.getUid());
+            data.put("username", username);
+            data.put("email", user.getEmail());
+            data.put("password", user.getPassword());
+            data.put("space_usage", spaceUsage);
+            data.put("avatar", "/avatar/avatar.jpg");
+            return Result.success(data, "success");
+        } catch (Exception e) {
+            return Result.error("1", "Failed to manage user: " + e.getMessage());
         }
     }
+
     @PostMapping("/update")
-    public Result updateUserInfo(@RequestParam long userid, @RequestParam String email, @RequestParam String name){
+    public Result updateUserInfo(@RequestParam long userid, @RequestParam String email, @RequestParam String name) {
         boolean result = userService.updateUserEmailAndName(userid, email, name);
         if (result) {
             return Result.success(null, "success");
@@ -121,6 +143,7 @@ public class UserController {
             return Result.error("1", "不存在该用户");
         }
     }
+
     @PostMapping("/updatePassword")
     public Result updatePassword(@RequestParam long userid, @RequestParam String password, @RequestParam String NewPassword) {
         User user = userService.findByUid(userid);
@@ -170,6 +193,7 @@ public class UserController {
             return Result.error("1", "上传照片失败: " + e.getMessage());
         }
     }
+
     @GetMapping("/photo/browse")
     public Result browsePhotos(@RequestParam long userid, @RequestParam long albumId) {
         try {
@@ -189,7 +213,7 @@ public class UserController {
                 Map<String, String> photoData = new HashMap<>();
                 photoData.put("photoname", photo.getPhotoname());
                 // 构造照片的URL
-                String photoUrl = "photo/"  + photo.getPhotoname();
+                String photoUrl = "photo/" + photo.getPhotoname();
                 photoData.put("photoUrl", photoUrl);
                 data.add(photoData);
             }
@@ -198,6 +222,7 @@ public class UserController {
             return Result.error("1", "浏览照片失败: " + e.getMessage());
         }
     }
+
     @GetMapping("/photo/view")
     public ResponseEntity<?> viewPhoto(@RequestParam long userid, @RequestParam String photo) {
         try {
@@ -228,6 +253,7 @@ public class UserController {
             return ResponseEntity.status(500).body("Error retrieving photo details");
         }
     }
+
     public class PhotoResponse {
         private String photoname;
         private String albumid;
@@ -271,44 +297,38 @@ public class UserController {
     }
 // ...
 
-    @PutMapping("/photo/manage")
-    public ResponseEntity<?> managePhotos(@RequestParam String userid) {
+    @GetMapping("photo/manage")
+    public Result manageUser(@RequestParam long userid) {
         try {
-            // 使用userid获取username
-            User user = userService.findByUid(Long.parseLong(userid));
+            // 使用userid获取用户
+            User user = userService.findByUid(userid);
             if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+                return Result.error("1", "用户不存在");
             }
+            // 获取用户名
             String username = user.getUsername();
-
-            // 获取/username/photo/目录下的所有照片
-            Path dir = Paths.get(System.getProperty("user.home") + "/Desktop/test/" + username + "/photo/");
-            File[] files = dir.toFile().listFiles();
-            if (files == null || files.length == 0) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No photos found");
+            // 构造照片的存储路径
+            String photoPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/photo/";
+            File photoFolder = new File(photoPath);
+            // 如果文件夹不存在，返回错误
+            if (!photoFolder.exists()) {
+                return Result.error("1", "用户没有照片");
             }
-
-            // 按修改时间排序
-            Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
-
+            // 获取文件夹下所有文件
+            File[] files = photoFolder.listFiles();
             // 构造返回的数据
             List<Map<String, String>> data = new ArrayList<>();
             for (File file : files) {
-                Map<String, String> photoData = new HashMap<>();
-                photoData.put("photoname", file.getName());
-                photoData.put("edit_time", new SimpleDateFormat("dd-MM-yy").format(file.lastModified()));
-                data.add(photoData);
+                Map<String, String> fileData = new HashMap<>();
+                fileData.put("photoname", file.getName());
+                // 构造照片的URL
+                String photoUrl = "/photo/" + file.getName();
+                fileData.put("photoUrl", photoUrl);
+                data.add(fileData);
             }
-
-            // 构造返回的响应
-            Map<String, Object> response = new HashMap<>();
-            response.put("error_code", 0);
-            response.put("msg", "success");
-            response.put("data", data);
-
-            return ResponseEntity.ok(response);
+            return Result.success(data, "success");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error managing photos: " + e.getMessage());
+            return Result.error("1", "管理用户失败: " + e.getMessage());
         }
     }
 }

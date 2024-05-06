@@ -6,14 +6,17 @@ import com.user.service.UserService;
 import jakarta.annotation.Resource;
 import com.user.repository.Photo2AlbumDao;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.io.File;
 
 
 @Service
 public class UserServiceImpl implements UserService {
+
     @Resource
     private UserDao userDao;
     @Override
@@ -115,6 +118,58 @@ public class UserServiceImpl implements UserService {
             return true;
         } else {
             return false;
+        }
+    }
+    @Override
+    public int[] getSpaceUsage(long userid) {
+        try {
+            // Use userid to get user
+            User user = userDao.findByUid(userid);
+            if (user == null) {
+                throw new Exception("User does not exist");
+            }
+            // Get username
+            String username = user.getUsername();
+            // Construct the path of the user's directory
+            String userPath = System.getProperty("user.home") + "/Desktop/test/" + username;
+            File userFolder = new File(userPath);
+            // If the directory does not exist, return an error
+            if (!userFolder.exists()) {
+                throw new Exception("User does not have a directory");
+            }
+            // Initialize space usage array
+            int[] spaceUsage = new int[3]; // For documents, photos, videos
+            // Get all files in the user's directory
+            calculateSpaceUsage(userFolder, spaceUsage);
+            return spaceUsage;
+        } catch (Exception e) {
+            // Handle exception
+            return null;
+        }
+    }
+
+    private void calculateSpaceUsage(File folder, int[] spaceUsage) {
+        File[] files = folder.listFiles();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                // If the file is a directory, recursively calculate its space usage
+                calculateSpaceUsage(file, spaceUsage);
+            } else {
+                // Get file size
+                long fileSize = file.length();
+                // Categorize file and add its size to the corresponding index in the space usage array
+                String fileName = file.getName();
+                if (fileName.endsWith(".doc") || fileName.endsWith(".txt")) {
+                    // Document
+                    spaceUsage[0] += fileSize;
+                } else if (fileName.endsWith(".jpg") || fileName.endsWith(".png")) {
+                    // Photo
+                    spaceUsage[1] += fileSize;
+                } else if (fileName.endsWith(".mp4") || fileName.endsWith(".avi")) {
+                    // Video
+                    spaceUsage[2] += fileSize;
+                }
+            }
         }
     }
 }

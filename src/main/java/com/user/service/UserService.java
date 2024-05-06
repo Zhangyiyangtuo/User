@@ -16,4 +16,5 @@ public interface UserService {
     String getUsernameById(long userid);
     boolean changePassword(long userid, String newPassword);
     public boolean updateUserEmailAndName(long uid, String email, String name);
+    public int[] getSpaceUsage(long userid);
 }
