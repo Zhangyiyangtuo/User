@@ -135,15 +135,61 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    public Result updateUserInfo(@RequestParam long userid, @RequestParam String email, @RequestParam String name) {
-        boolean result = userService.updateUserEmailAndName(userid, email, name);
-        if (result) {
-            return Result.success(null, "success");
-        } else {
-            return Result.error("1", "不存在该用户");
+    public Result updateUserInfo(@RequestParam String userid, @RequestParam String newUsername) {
+        try {
+            // Convert userid to long
+            long uid = Long.parseLong(userid);
+            // Use userid to get user
+            User user = userService.findByUid(uid);
+            if (user == null) {
+                return Result.error("1", "User does not exist");
+            }
+            // Get old username
+            String oldUsername = user.getUsername();
+            // Update username
+            boolean result = userService.updateUserInfo(uid, newUsername);
+            if (result) {
+                // Rename user's directory
+                String oldDirPath = System.getProperty("user.home") + "/Desktop/test/" + oldUsername;
+                String newDirPath = System.getProperty("user.home") + "/Desktop/test/" + newUsername;
+                File oldDir = new File(oldDirPath);
+                File newDir = new File(newDirPath);
+                if (oldDir.renameTo(newDir)) {
+                    return Result.success(null, "success");
+                } else {
+                    return Result.error("1", "Failed to rename user's directory");
+                }
+            } else {
+                return Result.error("1", "Failed to update user information");
+            }
+        } catch (Exception e) {
+            return Result.error("1", "Failed to update user information: " + e.getMessage());
         }
     }
-
+    @PostMapping("/updateAvatar")
+    public Result updateAvatar(@RequestParam long userid, @RequestParam("avatar") MultipartFile avatar) {
+        try {
+            // Use userid to get user
+            User user = userService.findByUid(userid);
+            if (user == null) {
+                return Result.error("1", "User does not exist");
+            }
+            // Get username
+            String username = user.getUsername();
+            // Construct the path of the avatar
+            String avatarPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/avatar/avatar.jpg";
+            File avatarFile = new File(avatarPath);
+            // If the directory does not exist, create it
+            if (!avatarFile.getParentFile().exists()) {
+                avatarFile.getParentFile().mkdirs();
+            }
+            // Save the new avatar
+            avatar.transferTo(avatarFile);
+            return Result.success(null, "success");
+        } catch (Exception e) {
+            return Result.error("1", "Failed to update avatar: " + e.getMessage());
+        }
+    }
     @PostMapping("/updatePassword")
     public Result updatePassword(@RequestParam long userid, @RequestParam String password, @RequestParam String NewPassword) {
         User user = userService.findByUid(userid);
