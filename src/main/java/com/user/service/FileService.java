@@ -15,4 +15,5 @@ public interface FileService {
     List<MyFile> searchFiles(String userid, String filename);
     List<MyFile> getRecentFiles(String userid);
     public boolean deleteFile(long userid, String filePath);
+    boolean fileToBin(long userId, String filename,String filePath);
 }

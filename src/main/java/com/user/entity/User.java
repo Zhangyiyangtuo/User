@@ -46,4 +46,12 @@ public class User implements Serializable {
     private Date regdate;
     */
 
+    public User(){}
+    public User(long uid, String username, int avatarID, String email) {
+        this.uid = uid;
+        this.username = username;
+        this.avatarID = avatarID;
+        this.email = email;
+    }
+
 }

@@ -1,11 +1,14 @@
 package com.user.service.serviceImpl;
 
+import com.user.entity.Bin;
 import com.user.entity.MyFile;
+import com.user.service.BinService;
 import com.user.service.FileService;
 import com.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.naming.Binding;
 import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -21,6 +24,12 @@ import java.util.stream.Stream;
 public class FileServiceImpl implements FileService {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private BinService binService;
+
+    private final String binPath = "/bin"; // 回收站文件夹路径
+    private final String binPath1 = "D:/张伊扬/软件工程/data/";
 
     // In FileServiceImpl.java
     @Override
@@ -340,6 +349,40 @@ public class FileServiceImpl implements FileService {
         Path path = Paths.get(fullFilePath);
         try {
             Files.delete(path);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean fileToBin(long userId,String filename, String filePath) {
+        String username = userService.getUsernameById(userId);
+        if (username == null) {
+            return false;
+        }
+
+        String fullFilePath = binPath1 + String.valueOf(userId) + "/" + filePath +"/"+filename;
+        //Path srcPath = Paths.get(fullFilePath,filename);
+        //LocalDateTime now = LocalDateTime.now();
+        //String binFilename = now.toString().replace(":", "-") + "_" + filePath; // 在文件名前添加当前时间，避免不同用户的文件名冲突
+        String binFolderPath = binPath1 + String.valueOf(userId) + binPath+"/"+filename;
+        //Path binPath = Paths.get(binFolderPath,filename);
+        File srcFile = new File(fullFilePath);
+        File destFile = new File(binFolderPath);
+
+
+        try {
+            Files.move(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+            // 将文件信息存储到 Bin 实体中
+            Bin bin = new Bin();
+            bin.setUid(userId);
+            bin.setFilename(filename);
+            bin.setPath(filePath);
+            binService.save(bin);
+
             return true;
         } catch (IOException e) {
             e.printStackTrace();

@@ -116,4 +116,12 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
+    @Override
+    public Long getUserIdByEmail(String email) {
+        User user = userDao.findByEmail(email);
+        if (user == null) {
+            return null;
+        }
+        return user.getUid();
+    }
 }

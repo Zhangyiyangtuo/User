@@ -1,8 +1,11 @@
 package com.user.controller;
 
 import com.user.entity.MyFile;
+import com.user.entity.Share;
+import com.user.service.ShareService;
 import com.user.service.UserService;
 import com.user.service.serviceImpl.FileServiceImpl;
+import com.user.utils.JwtTokenUtil;
 import com.user.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -17,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.io.IOException;
 import  java.io.File;
+import org.apache.commons.io.FileUtils;
 
 @RestController
 @RequestMapping("/api/file")
@@ -25,6 +29,14 @@ public class FileController {
     private FileServiceImpl fileService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ShareService shareService;
+
+    private final JwtTokenUtil jwtTokenUtil; // 添加 JwtTokenUtil 类的引用
+
+    public FileController(JwtTokenUtil jwtTokenUtil) {
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
     @PostMapping("/getAll")
     public ResponseEntity<Object> getAllFiles(@RequestParam(required = false) Long userid,
@@ -119,13 +131,17 @@ public Result addFile(@RequestParam long userid,
         return ResponseEntity.ok(myFiles);
     }
     @PostMapping("/delete")
-    public Result deleteFile(@RequestParam long userid, @RequestParam String file_path){
-        boolean result = fileService.deleteFile(userid, file_path);
+    public Result deleteFile(@RequestParam String token, @RequestParam String filename,@RequestParam String file_path){
+        long userid = jwtTokenUtil.extractUserId(token);
+        boolean result = fileService.fileToBin(userid, filename, file_path);
         if (result) {
-            return Result.success(null, "success");
-        } else {
-            return Result.error("1", "删除文件失败");
+
+            return Result.success("0", "success");
         }
+        else {
+            return Result.error("1", "移动文件到回收站失败");
+        }
+
     }
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadFile(@RequestParam long userid, @RequestParam String file_path) {
@@ -147,6 +163,47 @@ public Result addFile(@RequestParam long userid,
         } catch (Exception e) {
             // 如果出现任何异常，返回一个错误的响应
             return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/share")
+    public Result shareFile(@RequestParam String token,
+                            @RequestParam String filename,
+                            @RequestParam String path,
+                            @RequestParam String email,
+                            @RequestParam int state) {
+        // 解析token获取用户ID
+        Long uid1 = jwtTokenUtil.extractUserId(token);
+        if (uid1 == null) {
+            return Result.error("1", "无效的token");
+        }
+        // 根据email查找用户ID
+        Long uid2 = userService.getUserIdByEmail(email);
+        if (uid2 == null) {
+            return Result.error("2", "用户不存在");
+        }
+        // 将文件保存到uid2的uid2/share/路径下
+        String destFolder = "D:/张伊扬/软件工程/data/"+ uid2 + "/share/";
+        String destFilePath = destFolder + filename;
+        String scPath = "D:/张伊扬/软件工程/data/"+ uid1 + "/" + path + "/" + filename;
+        try {
+            FileUtils.copyFile(new File(scPath), new File(destFilePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Result.error("3", "文件复制失败");
+        }
+        // 插入share表
+        Share share = new Share();
+        share.setUid1(uid1);
+        share.setUid2(uid2);
+        share.setFilename(filename);
+        share.setPath(path);
+        share.setState(state);
+        boolean result = shareService.addShare(share);
+        if (result) {
+            return Result.success("0", "success");
+        } else {
+            return Result.error("4", "共享失败");
         }
     }
 }
