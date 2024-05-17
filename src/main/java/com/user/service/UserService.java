@@ -18,4 +18,5 @@ public interface UserService {
     public boolean updateUserEmailAndName(long uid, String email, String name);
 
     Long getUserIdByEmail(String email);
+    public int[] getSpaceUsage(long userid);
 }

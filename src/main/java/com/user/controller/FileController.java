@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -69,13 +70,6 @@ public Result addFile(@RequestParam long userid,
         // 保存文件到创建的文件夹中
         String fileUrl = userFolderPath + "/" + filename;
         file.transferTo(new File(fileUrl));
-        // 调用你的服务来添加文件
-//        boolean result = fileService.addFile(userid, filename, size, fileUrl);
-//        if (result) {
-//            return Result.success(null, "success");
-//        } else {
-//            return Result.error("1", "添加文件失败");
-//        }
         return Result.success(null, "success");
     } catch (IOException e) {
         e.printStackTrace();
@@ -110,13 +104,17 @@ public Result addFile(@RequestParam long userid,
             return Result.error("1", "获取文件数量失败");
         }
     }
+
     @PostMapping("/update")
-    public Result updateFile(@RequestParam long userid, @RequestParam String file_path, @RequestParam String file_url) {
-        boolean result = fileService.updateFile(userid, file_path, file_url);
-        if (result) {
-            return Result.success(null, "success");
-        } else {
-            return Result.error("1", "更新文件失败");
+    public Result updateFile(@RequestParam long userid, @RequestParam String file_path, @RequestParam MultipartFile file) {
+        try {
+            if (fileService.updateFile(userid, file_path, file)) {
+                return Result.success(null, "success");
+            } else {
+                return Result.error("1", "更新文件失败");
+            }
+        } catch (Exception e) {
+            return Result.error("1", "更新文件失败: " + e.getMessage());
         }
     }
     @PostMapping("/search")
@@ -163,6 +161,71 @@ public Result addFile(@RequestParam long userid,
         } catch (Exception e) {
             // 如果出现任何异常，返回一个错误的响应
             return ResponseEntity.badRequest().body(null);
+        }
+    }
+    @PostMapping("/folder/add")
+    public Result addFolder(@RequestParam long userid, @RequestParam String path, @RequestParam String name) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return Result.error("1", "用户不存在");
+            }
+            // 构造文件夹的完整路径
+            String folderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + name;
+            File folder = new File(folderPath);
+            // 如果文件夹不存在，创建它
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            return Result.success(null, "succeed");
+        } catch (Exception e) {
+            return Result.error("1", "创建文件夹失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("folder/rename")
+    public Result renameFolder(@RequestParam long userid, @RequestParam String path, @RequestParam String pre_name, @RequestParam String new_name) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return Result.error("1", "用户不存在");
+            }
+            // 构造旧文件夹和新文件夹的完整路径
+            String oldFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + pre_name;
+            String newFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + path + "/" + new_name;
+            File oldFolder = new File(oldFolderPath);
+            File newFolder = new File(newFolderPath);
+            // 如果旧文件夹存在，且新文件夹不存在，重命名它
+            if (oldFolder.exists() && !newFolder.exists()) {
+                oldFolder.renameTo(newFolder);
+            }
+            return Result.success(null, "succeed");
+        } catch (Exception e) {
+            return Result.error("1", "重命名文件夹失败: " + e.getMessage());
+        }
+    }
+    @PostMapping("folder/move")
+    public Result moveFolder(@RequestParam long userid, @RequestParam String pre_path, @RequestParam String new_path, @RequestParam String name) {
+        try {
+            // 获取用户名
+            String username = userService.getUsernameById(userid);
+            if (username == null) {
+                return Result.error("1", "用户不存在");
+            }
+            // 构造旧文件夹和新文件夹的完整路径
+            String oldFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + pre_path + "/" + name;
+            String newFolderPath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + new_path + "/" + name;
+            File oldFolder = new File(oldFolderPath);
+            File newFolder = new File(newFolderPath);
+            // 如果旧文件夹存在，且新文件夹不存在，移动它
+            if (oldFolder.exists() && !newFolder.exists()) {
+                oldFolder.renameTo(newFolder);
+            }
+            return Result.success(null, "succeed");
+        } catch (Exception e) {
+            return Result.error("1", "移动文件夹失败: " + e.getMessage());
         }
     }
 

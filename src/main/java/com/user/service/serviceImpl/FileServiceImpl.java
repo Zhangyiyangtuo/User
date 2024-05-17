@@ -7,13 +7,17 @@ import com.user.service.FileService;
 import com.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.user.repository.Photo2AlbumDao;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.naming.Binding;
 import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.net.URL;
@@ -238,30 +242,23 @@ public class FileServiceImpl implements FileService {
             e.printStackTrace();
         }
     }
+
     @Override
-    public boolean updateFile(long userid, String filePath, String fileUrl) {
+    public boolean updateFile(long userid, String filePath, MultipartFile file) {
         String username = userService.getUsernameById(userid);
         if (username == null) {
             return false;
         }
 
         String fullFilePath = System.getProperty("user.home") + "/Desktop/test/" + username + "/" + filePath;
-        Path oldPath = Paths.get(fullFilePath);
-        if (!Files.exists(oldPath)) {
-            return false;
-        }
-
-        // Extract the file name from the file path
-        String[] pathParts = fileUrl.split("/");
-        String fileName = pathParts[pathParts.length - 1];
-
-        // Download the new file to a temporary location
-        downloadFile(fileUrl);
-
-        // Replace the old file with the new file
-        Path tempPath = Paths.get(System.getProperty("user.home") + "/Desktop/test/tmp/" + fileName);
+        Path path = Paths.get(fullFilePath);
         try {
-            Files.move(tempPath, oldPath, StandardCopyOption.REPLACE_EXISTING);
+            // Delete the old file
+            Files.deleteIfExists(path);
+
+            // Save the new file
+            Files.copy(file.getInputStream(), path);
+
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -317,22 +314,22 @@ public class FileServiceImpl implements FileService {
                         // create a File object from the Path
                         MyFile myFile = new MyFile();
                         myFile.setFilename(path.getFileName().toString());
-                        myFile.setUpdater(username);
+                        // Get the parent directory name
+                        String updater = getUpdater(path);
+                        // Set updater to the top level directory name under ~/Desktop/test/
+                        myFile.setUpdater(updater);
                         try {
-                            myFile.setUpdateTime(String.valueOf(Files.getLastModifiedTime(path).toInstant()));
+                            Instant instant = Files.getLastModifiedTime(path).toInstant();
+                            LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+                            myFile.setUpdateTime(dateTime.toString());
                             myFile.setSize(Files.size(path) + " bytes");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                         return myFile;
                     })
-                    .filter(myFile -> {
-                        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
-                        return LocalDateTime.parse(myFile.getUpdateTime()).isAfter(oneMonthAgo);
-                    })
-                    .sorted(Comparator.comparing(MyFile::getUpdateTime).reversed())
-                    .limit(10)
                     .collect(Collectors.toList());
+
         } catch (IOException e) {
             throw new RuntimeException("Error reading files", e);
         }
