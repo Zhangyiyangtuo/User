@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -74,6 +75,17 @@ public class ShareController {
                 String mimeType = Files.probeContentType(Paths.get(path));
                 String fileTypeText = getFileTypeText(mimeType);
 
+                String path1 = "D:/张伊扬/软件工程/data/"+ uid2 + "/photo" ;
+                Resource resource1 = new UrlResource(Paths.get(path1).toUri());
+                InputStream inputStream1 = resource1.getInputStream();
+                ByteArrayOutputStream byteArrayOutputStream1 = new ByteArrayOutputStream();
+                byte[] buffer1 = new byte[4096];
+                int len1;
+                while ((len1 = inputStream1.read(buffer1)) != -1) {
+                    byteArrayOutputStream1.write(buffer1, 0, len1);
+                }
+                byte[] avatar = byteArrayOutputStream1.toByteArray();
+
                 //将获取的文件信息封装到Map中并添加到resultLi列表中返回给前端
                 Map<String, Object> resultMap = new HashMap<>();
                 resultMap.put("fileid", share.getFileid());
@@ -84,7 +96,7 @@ public class ShareController {
                 resultMap.put("fileContent", byteArrayOutputStream.toByteArray());
                 resultMap.put("username", user.getUsername());
                 resultMap.put("email", user.getEmail());
-                resultMap.put("avatarId", user.getAvatarID());
+                resultMap.put("avatar", avatar);
                 resultList.add(resultMap);
             }
             return ResponseEntity.ok(resultList);
@@ -212,7 +224,7 @@ public class ShareController {
     }
 
     @GetMapping("/allcheck")
-    public ResponseEntity<Object> checkAllShare(@RequestParam String token) {
+    public ResponseEntity<Object> checkAllShare(@RequestParam String token) throws IOException {
         Long uid2 = jwtTokenUtil.extractUserId(token);
         if (uid2 == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -237,12 +249,22 @@ public class ShareController {
                     // 处理异常
                 }
             }
+            String path = "D:/张伊扬/软件工程/data/"+ uid2 + "/photo" ;
+            Resource resource = new UrlResource(Paths.get(path).toUri());
+            InputStream inputStream = resource.getInputStream();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, len);
+            }
+            byte[] avatar = byteArrayOutputStream.toByteArray();
 
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("uid1", uid1);
             resultMap.put("username", username);
             resultMap.put("email", email);
-            resultMap.put("avatarId", avatarId);
+            resultMap.put("avatar", avatar);
             resultMap.put("filelist", fileList);
             resultList.add(resultMap);
         }
