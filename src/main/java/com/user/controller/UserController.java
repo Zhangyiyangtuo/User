@@ -23,7 +23,7 @@ import java.util.*;
 
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 
     @Resource
@@ -135,7 +135,7 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    public Result updateUserInfo(@RequestParam String userid, @RequestParam String newUsername) {
+    public Result updateUserInfo(@RequestParam String userid, @RequestParam String newUsername, @RequestParam String newEmail) {
         try {
             // Convert userid to long
             long uid = Long.parseLong(userid);
@@ -155,6 +155,8 @@ public class UserController {
                 File oldDir = new File(oldDirPath);
                 File newDir = new File(newDirPath);
                 if (oldDir.renameTo(newDir)) {
+                    //update email
+                    userService.updateEmail(uid, newEmail);
                     return Result.success(null, "success");
                 } else {
                     return Result.error("1", "Failed to rename user's directory");
@@ -190,7 +192,7 @@ public class UserController {
             return Result.error("1", "Failed to update avatar: " + e.getMessage());
         }
     }
-    @PostMapping("/updatePassword")
+    @PostMapping("/updatePwd")
     public Result updatePassword(@RequestParam long userid, @RequestParam String password, @RequestParam String NewPassword) {
         User user = userService.findByUid(userid);
         if (user == null) {

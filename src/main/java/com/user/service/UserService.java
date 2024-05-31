@@ -3,6 +3,8 @@ package com.user.service;
 import com.user.entity.User;
 
 public interface UserService {
+    //update email
+    boolean updateEmail(long uid, String email);
 
     User loginService(String email, String username, String password);
 

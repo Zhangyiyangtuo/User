@@ -129,6 +129,17 @@ public class UserServiceImpl implements UserService {
         return user.getUid();
     }
     @Override
+    public boolean updateEmail(long uid, String email) {
+        User user = userDao.findByUid(uid);
+        if (user != null) {
+            user.setEmail(email);
+            userDao.save(user);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    @Override
     public int[] getSpaceUsage(long userid) {
         try {
             // Use userid to get user
